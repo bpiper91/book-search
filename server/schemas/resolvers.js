@@ -1,19 +1,44 @@
 const { AuthenticationError } = require('apollo-server-express');
 const { User, Book } = require('../models');
-// add auth util to sign token
+// import util signToken after updating auth.js
 
 const resolvers = {
     Query: {
         me: async (parent, args, context) => {
-            // logic
-        }    
+            if (context.user) {
+                const userData = await User.findOne({ _id: context.user._id})
+                    .select('-__v -password')
+                    .populate('savedBooks')
+
+                return userData;
+            };
+
+            throw new AuthenticationError('Must be logged in to do that');
+        }
     },
     Mutation: {
         login: async (parent, { email, password }) => {
-            // logic
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                throw new AuthenticationError('Incorrect login credentials');
+            };
+
+            const correctPassword = await user.isCorrectPassword(password);
+
+            if (!correctPassword) {
+                throw new AuthenticationError('Incorrect login credentials');
+            };
+
+            const token = signToken(user);
+
+            return { token, user };
         },
-        addUser: async (parent, { username, email, password }, context) => {
-            // logic
+        addUser: async (parent, args) => {
+            const user = await User.create(args);
+            const token = signToken(user);
+
+            return { token, user };
         },
         saveBook: async (parent, args, context) => {
             const { bookId, authors, description, title, image, link } = args;
@@ -22,6 +47,7 @@ const resolvers = {
         },
         removeBook: async (parent, { bookId }, context) => {
             // logic
+ 
         }
     }
 };
