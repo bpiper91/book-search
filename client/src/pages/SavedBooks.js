@@ -13,30 +13,8 @@ const SavedBooks = async () => {
   const [userData, setUserData] = useState({});
 
   const { data } = await useQuery(QUERY_ME);
-  console.log(data);
-  setUserData(data.userData);
-
-  // const token = Auth.loggedIn() ? Auth.getToken() : null;
-
-  // const getUserData = async () => {
-  //   try {
-  //     const token = Auth.loggedIn() ? Auth.getToken() : null;
-
-  //     if (!token) {
-  //       console.log('must be logged in to view saved books')
-  //       return false;
-  //     }
-
-  //     const { data } = useQuery(QUERY_ME);
-  //     const { user } = data;
-
-  //     setUserData(user);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-  // getUserData();
+  const user = data?.user || {};
+  setUserData(user);
 
   // create function that accepts the book's mongo _id value as param and deletes the book from the database
   const handleDeleteBook = async (bookId) => {

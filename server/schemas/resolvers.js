@@ -42,7 +42,7 @@ const resolvers = {
         },
         saveBook: async (parent, args, context) => {
 
-            console.log(args);
+            return args;
             
             const { bookId, authors, description, title, image, link } = args.input;
 
