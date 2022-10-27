@@ -1,5 +1,6 @@
 const { AuthenticationError } = require('apollo-server-express');
 const { User } = require('../models');
+const bookSchema = require('../models/Book');
 const { signToken } = require('../utils/auth');
 
 const resolvers = {
@@ -8,7 +9,6 @@ const resolvers = {
             if (context.user) {
                 const userData = await User.findOne({ _id: context.user._id})
                     .select('-__v -password')
-                    .populate('savedBooks');
 
                 return userData;
             };
@@ -41,17 +41,21 @@ const resolvers = {
             return { token, user };
         },
         saveBook: async (parent, args, context) => {
-            const { bookId, authors, description, title, image, link } = args;
+
+            console.log(args);
+            
+            const { bookId, authors, description, title, image, link } = args.input;
+
+            const newBook = { bookId, authors, description, title, image, link };
 
             if (context.user) {
                 const updatedUser = await User.findOneAndUpdate(
                     { _id: context.user._id },
-                    { $addToSet: {savedBooks: { bookId, authors, description, title, image, link } } },
-                    { new: true }
+                    { $addToSet: { savedBooks: newBook } },
+                    { new: true, runValidators: true }
                 )
-                    .populate('savedBooks');
             
-                return updatedUser;
+                return res.json(updatedUser);
             };
 
             throw new AuthenticationError('Must be logged in to do that');
@@ -63,7 +67,6 @@ const resolvers = {
                     { $pull: { savedBooks: { bookId: bookId } } },
                     { new: true }
                 )
-                    .populate('savedBooks');
                 
                 return updatedUser;
             };

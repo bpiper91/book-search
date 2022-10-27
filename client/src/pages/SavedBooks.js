@@ -8,14 +8,13 @@ import { REMOVE_BOOK } from '../utils/mutations';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 
-const SavedBooks = () => {
+const SavedBooks = async () => {
   const [deleteBook] = useMutation(REMOVE_BOOK);
   const [userData, setUserData] = useState({});
 
-  const { data } = useQuery(QUERY_ME);
-  const { user } = data;
-
-  setUserData(user);
+  const { data } = await useQuery(QUERY_ME);
+  console.log(data);
+  setUserData(data.userData);
 
   // const token = Auth.loggedIn() ? Auth.getToken() : null;
 
@@ -48,13 +47,11 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook({ bookId });
+      const { data } = await deleteBook({ bookId });
 
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
+      console.log(data)
 
-      const updatedUser = await response.json();
+      const updatedUser = data.deleteBook
       setUserData(updatedUser);
 
       // upon success, remove book's id from localStorage
